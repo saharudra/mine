@@ -6,8 +6,12 @@ import numpy as np
 import argparse
 import time, datetime
 from tqdm import trange
+import matplotlib.pyplot as plt 
+import seaborn as sns
+sns.set()
 
 from misc.logger import Logger
+from misc.utils import *
 
 
 class StatisticsNetwork(nn.Module):
@@ -31,5 +35,27 @@ class StatisticsNetwork(nn.Module):
         return T
 
 
-if __name__ == __main__:
-    T_net = StatisticsNetwork()
+def gen_x():
+    return np.random.multivariate_normal(mean=[0, 0], cov=[[1, 0], [0, 1]], size=300)
+
+
+def gen_y():
+    return np.random.multivariate_normal(mean=[0, 0], cov=[[1, 0], [0, 1]], size=300)
+
+if __name__ == "__main__":
+    ts = time.time()
+    timestamp = datetime.datetime.fromtimestamp(ts).strftime('%d_%m_%Y_%H_%M_%S')
+
+    parser = argparse.ArgumentParser(description='mine')
+    parser.add_argument('--config', type=str, default='./configs/mine.yml', 
+                        help='Path to config file')
+    opts = parser.parse_args()
+    params = get_config(opts.config)
+    print(params)
+
+    sample_x = gen_x()
+    sample_y = gen_y()
+
+    sns.scatterplot(x=sample_x[:, 0], y=sample_x[:, 1])
+    sns.scatterplot(x=sample_y[:, 0], y=sample_x[:, 1])
+
