@@ -43,7 +43,7 @@ def gen_x():
 
 
 def gen_y():
-    return np.random.multivariate_normal(mean=[0, 0], cov=[[1, 0], [0, 1]], size=300)
+    return np.random.multivariate_normal(mean=[0, 0], cov=[[1, 0.8], [0.8, 1]], size=300)
 
 
 def sample_batch(data, batch_size=100, sample_mode='joint'):

@@ -1,5 +1,5 @@
 statistics_network:
-  nc: 1
+  nc: 2
   hidden: 400
   od: 1
 
