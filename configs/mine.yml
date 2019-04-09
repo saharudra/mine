@@ -1,6 +1,15 @@
-statistics_network:
-  nc: 2
-  hidden: 400
-  od: 1
+exp_name: 'mine_init'
+mine:
+  var1_size: 1
+  var2_size: 1
+  hidden: 100
+  oc: 1
 
 use_cuda: True
+epoch: 500
+training: True
+visualize: False
+
+logs: './logs/'
+resutls: './results/'
+

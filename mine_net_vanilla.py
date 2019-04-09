@@ -17,91 +17,73 @@ from misc.logger import Logger
 from misc.utils import *
 
 
-class StatisticsNetwork(nn.Module):
-    def __init__(self, params):
-        super(StatisticsNetwork, self).__init__()
-        self.statistics_network_params = params['statistics_network']
+class Mine(nn.Module):
+    def __init(self, params):
+        super(Mine, self).__init__()
+        self.params = params['mine']
+        self.fc1_x = nn.Linear(self.params['var1_size'], self.params['hidden'], bias=False)
+        self.fc1_y = nn.Linear(self.params['var2_size'], self.params['hidden'], bias=False)
+        self.fc1_bias = nn.Parameter(torch.zeros(self.params['hidden']))
+        self.fc2 = nn.Linear(self.params['hidden'], self.params['hidden'])
+        self.fc3 = nn.Linear(self.params['hidden'], self.params['oc'])
 
-        self.network_definition()
+        self.ma_et = None
 
-    def network_definition(self):
-        self.statistics_network = nn.Sequential(
-            nn.Linear(self.statistics_network_params['nc'], self.statistics_network_params['hidden']),
-            nn.LeakyReLU(0.2, True),
-            nn.Linear(self.statistics_network_params['hidden'], self.statistics_network_params['hidden']),
-            nn.LeakyReLU(0.2, True),
-            nn.Linear(self.statistics_network_params['hidden'], self.statistics_network_params['od'])
-        )
+    def forward(self, x, y):
+        x = self.fc1_x(x)
+        y = self.fc2_y(y)
 
-    def forward(self, x):
-        T = self.statistics_network(x)
-        return T
+        out = F.leaky_relu(x + y + self.fc1_bias, negative_slope=2e-1)
+        out = F.leaky_relu(self.fc2(out), negative_slope=2e-1)
+        out = self.fc3(out)
+        return out
 
+
+def mutual_information(joint, marginal):
+    mi_lb = torch.mean(joint) - torch.log(torch.mean(torch.exp(marginal)))
+    return mi_lb
+
+
+# data
+var = 0.2
+def func(x):
+    return x
 
 def gen_x():
-    return np.random.multivariate_normal(mean=[0, 0], cov=[[1, 0], [0, 1]], size=300)
+    return np.sign(np.random.normal(0.,1.,[data_size,1]))
 
+def gen_y(x):
+    return func(x)+np.random.normal(0.,np.sqrt(var),[data_size,1])
 
-def gen_y():
-    return np.random.multivariate_normal(mean=[0, 0], cov=[[1, 0.8], [0.8, 1]], size=300)
+def train(params):
+    model.train()
+    for epoch in range(params['epoch']):
+        loss_dict = {}
+        x_sample = torch.from_numpy(gen_x()).type(torch.FloatTensor)
+        y_sample = torch.from_numpy(gen_y(x_sample.numpy())).type(torch.FloatTensor)
+        y_shuffle = torch.from_numpy(np.random.permutation(y_sample.numpy())).type(torch.FloatTensor)
 
+        if params['use_cuda']:
+            x_sample = x_sample.cuda()
+            y_sample = y_sample.cuda()
+            y_shuffle = y_shuffle.cuda()
 
-def sample_batch(data, batch_size=100, sample_mode='joint'):
-    if sample_mode == 'joint':
-        index = np.random.choice(range(data.shape[0]), size=batch_size, replace=False)
-        batch = data[index]
-    else:
-        joint_index = np.random.choice(range(data.shape[0]), size=batch_size, replace=False)
-        marginal_index = np.random.choice(range(data.shape[0]), size=batch_size, replace=False)
-        batch = np.concatenate([data[joint_index][:,0].reshape(-1,1),
-                                         data[marginal_index][:,1].reshape(-1,1)],
-                                       axis=1)
-    return batch
+        optimizer.zero_grad()
 
+        joint = model(x_sample, y_sample)
+        marginal = model(x_sample, y_shuffle)
 
-def mutual_information(joint, marginal, mine_net):
-    t = mine_net(joint)
-    et = torch.exp(mine_net(marginal))
-    mi_lb = torch.mean(t) - torch.log(torch.mean(et))
-    return mi_lb, t, et
+        mi = mutual_information(joint, marginal)
+        loss = - mi  # Taking negative to maximize mutual information 
+        loss.backward()
+        optimizer.step()
 
+        loss_dict = info_dict('mi_val', loss.item(), loss_dict)
+        
+        for tag, value in loss_dict.items():
+            logger.scalar_summary(tag, value, epoch)
 
-def learn_mine(batch, mine_net, mine_net_optim,  ma_et, ma_rate=0.01):
-    # batch is a tuple of (joint, marginal)
-    joint , marginal = batch
-    joint = torch.autograd.Variable(torch.FloatTensor(joint)).cuda()
-    marginal = torch.autograd.Variable(torch.FloatTensor(marginal)).cuda()
-    mi_lb , t, et = mutual_information(joint, marginal, mine_net)
-    ma_et = (1-ma_rate)*ma_et + ma_rate*torch.mean(et)
-    
-    # unbiasing use moving average
-    loss = -(torch.mean(t) - (1/ma_et.mean()).detach()*torch.mean(et))
-    # use biased estimator
-    # loss = - mi_lb
-    
-    mine_net_optim.zero_grad()
-    loss.backward()
-    mine_net_optim.step()
-    return mi_lb, ma_et
-
-
-def train(data, mine_net,mine_net_optim, batch_size=100, iter_num=int(5e+3), log_freq=int(1e+3)):
-    # data is x or y
-    result = list()
-    ma_et = 1.
-    for i in range(iter_num):
-        batch = sample_batch(data,batch_size=batch_size)\
-        , sample_batch(data,batch_size=batch_size,sample_mode='marginal')
-        mi_lb, ma_et = learn_mine(batch, mine_net, mine_net_optim, ma_et)
-        result.append(mi_lb.detach().cpu().numpy())
-        if (i+1)%(log_freq)==0:
-            print(result[-1])
-    return result
-
-
-def ma(a, window_size=100):
-    return [np.mean(a[i:i+window_size]) for i in range(0,len(a)-window_size)]
-
+        print("MI value for epoch {} is {}.".format(epoch, loss.item()))
 
 
 if __name__ == "__main__":
@@ -115,33 +97,21 @@ if __name__ == "__main__":
     params = get_config(opts.config)
     print(params)
 
-    x = gen_x()
-    y = gen_y()
-
-    # sns.scatterplot(x=sample_x[:, 0], y=sample_x[:, 1])
-    # sns.scatterplot(x=sample_y[:, 0], y=sample_x[:, 1])
-
-    joint_data = sample_batch(y,batch_size=100,sample_mode='joint')
-    # sns.scatterplot(x=joint_data[:,0],y=joint_data[:,1],color='red')
-    marginal_data = sample_batch(y,batch_size=100,sample_mode='marginal')
-    # sns.scatterplot(x=marginal_data[:,0],y=marginal_data[:,1])
-    # plt.show()
-
-    mine_net_indep = StatisticsNetwork(params).cuda()
-    mine_net_optim_indep = optim.Adam(mine_net_indep.parameters(), lr=1e-3)
-    result_indep = train(x,mine_net_indep,mine_net_optim_indep)
-
-    result_indep_ma = ma(result_indep)
-    print(result_indep_ma[-1])
-    plt.plot(range(len(result_indep_ma)),result_indep_ma)
-
+    model = Mine(params)
     if params['use_cuda']:
-        mine_net_cor = StatisticsNetwork(params).cuda()
+        model = model.cuda()
 
-    mine_net_optim_cor = optim.Adam(mine_net_cor.parameters(), lr=1e-3)
-    result_cor = train(y,mine_net_cor,mine_net_optim_cor)
+    if params['training'] == True and params['visualize'] == False:
+        exp_logs = params['logs'] + params['exp_name'] + '_' + timestamp + '/'
+        exp_results = params['results'] + params['exp_name'] + '_' + timestamp + '/'  
+        mkdir_p(exp_logs)
+        mkdir_p(exp_results)
+        
+        config_logfile = exp_logs + 'config.json'
+        with open(config_logfile, 'w+') as cf:
+            json.dump(params, cf)
 
+        optimizer = optim.Adam(model.parameters(), lr=params['lr'])
+        logger = Logger(exp_logs)
 
-    result_cor_ma = ma(result_cor)
-    print(result_cor_ma[-1])
-    plt.plot(range(len(result_cor_ma)),result_cor_ma)
+        train(params)
