@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import numpy as np 
 import argparse
 import time, datetime
-from tqdm import trange
+import json
 import matplotlib.pyplot as plt 
 import seaborn as sns
 sns.set()
@@ -31,7 +31,7 @@ class Mine(nn.Module):
 
     def forward(self, x, y):
         x = self.fc1_x(x)
-        y = self.fc2_y(y)
+        y = self.fc1_y(y)
 
         out = F.leaky_relu(x + y + self.fc1_bias, negative_slope=2e-1)
         out = F.leaky_relu(self.fc2(out), negative_slope=2e-1)
@@ -50,10 +50,10 @@ def func(x):
     return x
 
 def gen_x():
-    return np.sign(np.random.normal(0.,1.,[data_size,1]))
+    return np.sign(np.random.normal(0.,1.,[20000,1]))
 
 def gen_y(x):
-    return func(x)+np.random.normal(0.,np.sqrt(var),[data_size,1])
+    return func(x)+np.random.normal(0.,np.sqrt(var),[20000,1])
 
 def train(params):
     model.train()
@@ -78,7 +78,7 @@ def train(params):
         loss.backward()
         optimizer.step()
 
-        loss_dict = info_dict('mi_val', loss.item(), loss_dict)
+        loss_dict = info_dict('mi_val', mi.item(), loss_dict)
         
         for tag, value in loss_dict.items():
             logger.scalar_summary(tag, value, epoch)

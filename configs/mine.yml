@@ -5,11 +5,12 @@ mine:
   hidden: 100
   oc: 1
 
+lr: 0.001
 use_cuda: True
 epoch: 500
 training: True
 visualize: False
 
 logs: './logs/'
-resutls: './results/'
+results: './results/'
 
