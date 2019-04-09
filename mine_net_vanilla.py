@@ -136,7 +136,8 @@ if __name__ == "__main__":
     plt.plot(range(len(result_indep_ma)),result_indep_ma)
 
     if params['use_cuda']:
-        mine_net_cor = StatisticsNetwork().cuda()
+        mine_net_cor = StatisticsNetwork(params).cuda()
+
     mine_net_optim_cor = optim.Adam(mine_net_cor.parameters(), lr=1e-3)
     result_cor = train(y,mine_net_cor,mine_net_optim_cor)
 
