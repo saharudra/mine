@@ -1,3 +1,6 @@
 statistics_network:
   nc: 1
   hidden: 400
+  od: 1
+
+use_cuda: True

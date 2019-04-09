@@ -1,5 +1,6 @@
 import torch 
 import torch.nn as nn 
+import torch.optim as optim
 import torch.nn.functional as F 
 
 import numpy as np 
@@ -126,7 +127,7 @@ if __name__ == "__main__":
     # sns.scatterplot(x=marginal_data[:,0],y=marginal_data[:,1])
     # plt.show()
 
-    mine_net_indep = StatisticsNetwork().cuda()
+    mine_net_indep = StatisticsNetwork(params).cuda()
     mine_net_optim_indep = optim.Adam(mine_net_indep.parameters(), lr=1e-3)
     result_indep = train(x,mine_net_indep,mine_net_optim_indep)
 
@@ -134,7 +135,8 @@ if __name__ == "__main__":
     print(result_indep_ma[-1])
     plt.plot(range(len(result_indep_ma)),result_indep_ma)
 
-    mine_net_cor = StatisticsNetwork().cuda()
+    if params['use_cuda']:
+        mine_net_cor = StatisticsNetwork().cuda()
     mine_net_optim_cor = optim.Adam(mine_net_cor.parameters(), lr=1e-3)
     result_cor = train(y,mine_net_cor,mine_net_optim_cor)
 
