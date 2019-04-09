@@ -18,7 +18,7 @@ from misc.utils import *
 
 
 class Mine(nn.Module):
-    def __init(self, params):
+    def __init__(self, params):
         super(Mine, self).__init__()
         self.params = params['mine']
         self.fc1_x = nn.Linear(self.params['var1_size'], self.params['hidden'], bias=False)
