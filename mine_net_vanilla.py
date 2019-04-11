@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F 
 
+from models.networks import Mine
+
 import numpy as np 
 import argparse
 import time, datetime
@@ -15,28 +17,6 @@ from sklearn.metrics import mutual_info_score
 
 from misc.logger import Logger
 from misc.utils import *
-
-
-class Mine(nn.Module):
-    def __init__(self, params):
-        super(Mine, self).__init__()
-        self.params = params['mine']
-        self.fc1_x = nn.Linear(self.params['var1_size'], self.params['hidden'], bias=False)
-        self.fc1_y = nn.Linear(self.params['var2_size'], self.params['hidden'], bias=False)
-        self.fc1_bias = nn.Parameter(torch.zeros(self.params['hidden']))
-        self.fc2 = nn.Linear(self.params['hidden'], self.params['hidden'])
-        self.fc3 = nn.Linear(self.params['hidden'], self.params['oc'])
-
-        self.ma_et = None
-
-    def forward(self, x, y):
-        x = self.fc1_x(x)
-        y = self.fc1_y(y)
-
-        out = F.leaky_relu(x + y + self.fc1_bias, negative_slope=2e-1)
-        out = F.leaky_relu(self.fc2(out), negative_slope=2e-1)
-        out = self.fc3(out)
-        return out
 
 
 def mutual_information(joint, marginal):

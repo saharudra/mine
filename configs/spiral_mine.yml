@@ -8,6 +8,22 @@ mine:
   hidden: 100
   oc: 1
 
+# Define parameters for generator 
+generator:
+  z_dim: 10
+  hidden: 500
+  oc: 2
+
+# Define parameters for discriminator
+discriminator:
+  oc: 1
+  nc: 2
+  hidden: 400
+
+# Define parameters for gan
+gan:
+  d_step: 1
+
 # Define training parameters
 lr: 0.0001
 use_cuda: True
