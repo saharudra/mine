@@ -9,9 +9,18 @@ mine:
   oc: 1
 
 # Define training parameters
-lr: 0.001
+lr: 0.0001
 use_cuda: True
-epoch: 500
+batch_size: 100
+epochs: 10
+
+# Dataset parameters
+dataset: 'spiral'  # spiral | 25Gaussians
+num_training_points: 100000
+num_val_points: 1000
+num_workers: 2
+
+# Decide whether to train and/or visualize
 training: True
 visualize: False
 
