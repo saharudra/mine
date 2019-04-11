@@ -12,8 +12,14 @@ class GANTrainerVanilla(nn.Module):
     def __init__(self, params):
         super(GANTrainerVanilla, self).__init__()
         self.params = params
+
+        # Initiate the networks
         self.gen = GeneratorSpiralMine(self.params)
         self.dis = DiscriminatorSpiralMine(self.params)
+
+        # Setup the optimizers
+        self.gen_opt = torch.optim.Adam(self.gen.parameters(), lr=self.params['generator']['lr'])
+        self.dis_opt = torch.optim.Adam(self.dis.parameters(), lr=self.params['discriminator']['lr'])
 
     def compute_noise(self):
         noise = torch.randn(self.params['batch_size'], self.params['generator']['z_dim'])
@@ -43,7 +49,7 @@ class GANTrainerVanilla(nn.Module):
         return gen_loss
 
     def train(self):
-        pass
+        
 
 
 

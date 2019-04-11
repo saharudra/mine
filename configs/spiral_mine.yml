@@ -13,12 +13,14 @@ generator:
   z_dim: 10
   hidden: 500
   oc: 2
+  lr: 0.0001  # If the generator and discriminator are using different learning rates, otherwise use global lr
 
 # Define parameters for discriminator
 discriminator:
   oc: 1
   nc: 2
   hidden: 400
+  lr: 0.0001  # If the generator and discriminator are using different learning rates, otherwise use the global lr
 
 # Define parameters for gan
 gan:
