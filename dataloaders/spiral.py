@@ -16,7 +16,15 @@ class Spiral(Dataset):
 
         self.n_points = n_points
         self.transform = transform
-        self.data_x, self.data_y = self.generate_spirals(n_points=int(n_points / 2))
+        self.x, self.y = self.generate_spirals(n_points=int(n_points / 2))
+        
+        self.data_x = []
+        self.data_y = []
+        self.data_x.extend(self.x[self.y==0, 0])
+        self.data_x.extend(self.x[self.y==1, 0])
+        self.data_y.extend(self.x[self.y==0, 1])
+        self.data_y.extend(self.x[self.y==1, 1])
+
 
     def generate_spirals(self, n_points, noise=.5):
         """
@@ -62,8 +70,8 @@ class ToTensor(object):
 def spiral_dataloader(params):
     trans=[ToTensor()]
 
-    train_set = Spiral(n_points=params['num_training_points'], transform=None)
-    val_set = Spiral(n_points=params['num_val_points'], transform=None)
+    train_set = Spiral(n_points=params['num_training_points'], transform=transforms.Compose(trans))
+    val_set = Spiral(n_points=params['num_val_points'], transform=transforms.Compose(trans))
 
     kwargs = {'num_workers': params['num_workers'], 'pin_memory': params['use_cuda']}
 
@@ -73,6 +81,11 @@ def spiral_dataloader(params):
     return train_loader, val_loader
 
 
+def spiral_plot(data_x, data_y):
+    plt.title('training set')
+    plt.plot(data_x, data_y, '.')
+    plt.show()
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', type=str, default='./configs/spiral_mine.yml', help='Path to config file')
@@ -81,9 +94,11 @@ if __name__ == '__main__':
 
     train_loader, val_loader = spiral_dataloader(params)
 
-    for idx, sample in enumerate(val_loader):
+    for idx, sample in enumerate(train_loader):
         print(sample)
+        print(sample.size())
+        data_x = sample[:, 0].numpy()
+        data_y = sample[:, 1].numpy()
+        spiral_plot(data_x, data_y)
         print("Only checking the Spiral dataloader")
         import pdb; pdb.set_trace()
-    
-
