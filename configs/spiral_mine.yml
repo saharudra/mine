@@ -31,6 +31,7 @@ lr: 0.0001
 use_cuda: True
 batch_size: 100
 epochs: 10
+loggin_interval: 2  # Frequency of running the visualize method.
 
 # Dataset parameters
 dataset: 'spiral'  # spiral | 25Gaussians

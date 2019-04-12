@@ -76,7 +76,7 @@ def spiral_dataloader(params):
     kwargs = {'num_workers': params['num_workers'], 'pin_memory': params['use_cuda']}
 
     train_loader = DataLoader(dataset=train_set, batch_size=params['batch_size'], shuffle=True, **kwargs)
-    val_loader = DataLoader(dataset=val_set, batch_size=params['batch_size'], shuffle=False, **kwargs)
+    val_loader = DataLoader(dataset=val_set, batch_size=params['num_val_points'], shuffle=False, **kwargs)
 
     return train_loader, val_loader
 
@@ -94,7 +94,7 @@ if __name__ == '__main__':
 
     train_loader, val_loader = spiral_dataloader(params)
 
-    for idx, sample in enumerate(train_loader):
+    for idx, sample in enumerate(val_loader):
         print(sample)
         print(sample.size())
         data_x = sample[:, 0].numpy()

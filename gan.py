@@ -6,6 +6,8 @@ from models.networks import GeneratorSpiralMine, DiscriminatorSpiralMine
 
 from misc.utils import *
 from tqdm import tqdm
+import matplotlib.pyplot as plt 
+import numpy as np
 
 
 class GAN(nn.Module):
@@ -18,12 +20,14 @@ class GAN(nn.Module):
 
 
 class GANTrainerVanilla():
-    def __init__(self, model, params, train_loader, val_loader, logger):
+    def __init__(self, model, params, train_loader, val_loader, logger, exp_results, exp_logs):
         super(GANTrainerVanilla, self).__init__()
         self.params = params
         self.train_loader = train_loader
         self.val_loader = val_loader
         self.logger = logger
+        self.exp_results = exp_results
+        self.exp_logs = exp_logs
 
         if self.params['use_cuda']:
             self.model = model.cuda()
@@ -61,8 +65,30 @@ class GANTrainerVanilla():
         gen_loss = -torch.mean(torch.log(dis_fake_score + 1e-8))
         return gen_loss
 
-    def visualize(self):
-        pass
+    def visualize(self, epoch):
+        """
+        We will be generating 1000 samples from the generator, equivalent to the number
+        of samples in the val_loader and save the overlayed plot.
+        """
+        self.model.eval()  # Set model to eval mode
+
+        # Get validation sample, no need to put on cuda as this is only being visualized
+        val_samples = next(iter(self.val_loader))
+        val_gen_samples = []
+        for i in range(self.params['num_val_points'] / self.params['batch_size']):
+            val_noise = self.compute_noise()
+            val_gen_out = self.model.gen(noise).numpy()
+            val_gen_samples.append(val_gen_out)
+        val_gen_samples = np.vstack(val_gen_samples)
+
+        # Plot validation and generated samples
+        plt.title('GAN w/o MI')
+        plt.plot(val_samples[:, 0], val_samples[:, 1], '.', 'original')
+        plt.plot(val_gen_samples[:, 0], val_gen_samples[:, 1], '.', 'generated')
+        plt.legend()
+        img_filename = self.exp_results + 'epoch_' + str(epoch) + '_spiral.jpg'
+        plt.savefig(img_filename)
+        
 
     def train(self):
         iteration = 0
@@ -101,7 +127,7 @@ class GANTrainerVanilla():
                     t.update()
 
             if epoch % self.params['loggin_interval'] == 0:
-                self.visualize()
+                self.visualize(epoch)
 
 
 
