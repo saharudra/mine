@@ -2,21 +2,10 @@ import torch
 import torch.nn as nn 
 import torch.nn.functional as F 
 
-from models.networks import GeneratorSpiralMine, DiscriminatorSpiralMine
-
 from misc.utils import *
 from tqdm import tqdm
 import matplotlib.pyplot as plt 
 import numpy as np
-
-
-class GAN(nn.Module):
-    def __init__(self, params):
-        super(GAN, self).__init__()
-        self.params = params
-
-        self.gen = GeneratorSpiralMine(self.params)
-        self.dis = DiscriminatorSpiralMine(self.params)
 
 
 class GANTrainerVanilla():
@@ -128,14 +117,3 @@ class GANTrainerVanilla():
 
             if epoch % self.params['loggin_interval'] == 0:
                 self.visualize(epoch)
-
-
-
-
-
-
-        
-
-
-
-
