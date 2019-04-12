@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F 
 
 from misc.utils import *
-from tqdm import tqdm
+from tqdm import trange
 import matplotlib.pyplot as plt 
 import numpy as np
 
@@ -40,8 +40,7 @@ class GANTrainerVanilla():
         dis_real_score = self.model.dis(real_sample)  # D(x)
         dis_fake_score = self.model.dis(gen_out)  # D(G(z))
 
-        dis_loss = torch.sum(-torch.mean(dis_real_score) + 1e-8) 
-                   + torch.log(1 - dis_fake_score + 1e-8)
+        dis_loss = torch.sum(-torch.mean(torch.log(dis_real_score + 1e-8) + torch.log(1 - dis_fake_score + 1e-8)))
         
         return dis_loss 
 

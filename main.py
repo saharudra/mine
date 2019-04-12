@@ -5,7 +5,7 @@ from models.gan import GAN
 from trainers.gan import GANTrainerVanilla
 from dataloaders.spiral import spiral_dataloader
 from misc.utils import *
-from logger import Logger
+from misc.logger import Logger
 
 import argparse
 import numpy as np 
