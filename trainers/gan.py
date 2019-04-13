@@ -72,8 +72,8 @@ class GANTrainerVanilla():
         
         # Plot validation and generated samples
         plt.title('GAN w/o MI')
-        plt.plot(val_samples[:, 0], val_samples[:, 1], marker='.', label='original', color='green')
-        plt.plot(val_gen_samples[:, 0], val_gen_samples[:, 1], marker='.', label='generated', color='blue')
+        plt.scatter(val_samples[:, 0], val_samples[:, 1], marker='.', label='original', color='green')
+        plt.scatter(val_gen_samples[:, 0], val_gen_samples[:, 1], marker='.', label='generated', color='blue')
         plt.legend()
         img_filename = self.exp_results + 'epoch_' + str(epoch) + '_spiral.jpg'
         plt.savefig(img_filename)
