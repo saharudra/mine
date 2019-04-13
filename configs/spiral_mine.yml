@@ -1,5 +1,5 @@
 # Define experiment name to be used fro saving the results and logs
-exp_name: 'mine_spiral'
+exp_name: 'mine_spiral_1000_epochs'
 
 # Define parameters for MINE's statistics network
 mine:
@@ -30,7 +30,7 @@ gan:
 lr: 0.0001
 use_cuda: True
 batch_size: 100
-epochs: 10
+epochs: 1000
 loggin_interval: 2  # Frequency of running the visualize method.
 
 # Dataset parameters
