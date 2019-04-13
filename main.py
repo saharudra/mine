@@ -32,6 +32,8 @@ logger = Logger(params['logs'])
 
 exp_logs = params['logs'] + params['exp_name'] + '_' + timestamp + '/' 
 exp_results = params['results'] + params['exp_name'] + '_' + timestamp + '/'
+mkdir_p(exp_logs)
+mkdir_p(exp_results)
 
 gan_trainer = GANTrainerVanilla(model, params, train_loader, val_loader, logger, exp_results, exp_logs)
 

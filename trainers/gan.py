@@ -62,13 +62,14 @@ class GANTrainerVanilla():
 
         # Get validation sample, no need to put on cuda as this is only being visualized
         val_samples = next(iter(self.val_loader))
+        val_samples = val_samples.numpy()
         val_gen_samples = []
-        for i in range(self.params['num_val_points'] / self.params['batch_size']):
+        for i in range(int(self.params['num_val_points'] / self.params['batch_size'])):
             val_noise = self.compute_noise()
-            val_gen_out = self.model.gen(noise).numpy()
+            val_gen_out = self.model.gen(val_noise).detach().cpu().numpy()
             val_gen_samples.append(val_gen_out)
         val_gen_samples = np.vstack(val_gen_samples)
-
+        
         # Plot validation and generated samples
         plt.title('GAN w/o MI')
         plt.plot(val_samples[:, 0], val_samples[:, 1], '.', 'original')
