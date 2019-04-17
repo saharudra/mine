@@ -144,12 +144,33 @@ class GANTrainerMI():
             noise = noise.cuda()
         return noise
 
-    def train_dis(self):
-        pass
+    def train_dis(self, real_sample):
+        noise = self.compute_noise()   
+        gen_out = self.model.gen(noise)
+
+        dis_real_score = self.model.dis(real_sample)  # D(x)
+        dis_fake_score = self.model.dis(gen_out)  # D(G(z))
+
+        dis_loss = torch.sum(-torch.mean(torch.log(dis_real_score + 1e-8) + torch.log(1 - dis_fake_score + 1e-8)))
+        
+        return dis_loss
     
     def train_gen(self):
-        pass 
+        noise = self.compute_noise()
+        noise_bar = torch.narrow(self.compute_noise(), dim=1, start=0, length=3)
+        
+        gen_out = self.model.gen(noise)
+        dis_fake_score = self.model.dis(gen_out)
+        
+        gen_loss = -torch.mean(torch.log(dis_fake_score + 1e-8))
 
+        noise_mi = torch.narrow(noise, dim=1, start=0, length=3)
+        mi = torch.mean(self.model.mine(noise_mi, gen_out) - torch.log(torch.exp(self.model.mine(noise_bar, gen_out))) + 1e-8)
+        
+        loss = gen_loss - self.params['mine']['weight'] * mi
+        
+        return loss, gen_loss
+        
     def train_mine(self):
         pass
 
