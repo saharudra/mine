@@ -1,15 +1,15 @@
 # Define experiment name to be used fro saving the results and logs
-exp_name: 'gan_wo_mine_spiral_1000_epochs'
+exp_name: 'gan_with_mine_try2'
 
 # Define parameters for MINE's statistics network
-use_mine: False
+use_mine: True
 mine:
   var1_size: 3
   var2_size: 2
   hidden: 100
   oc: 1
   lr: 0.0001
-  weight: 0.01
+  weight: 0.1
   ma_rate: 0.001
 
 # Define parameters for generator 

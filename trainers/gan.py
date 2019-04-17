@@ -198,6 +198,7 @@ class GANTrainerMI():
                 self.model.train()
                 for idx, sample in enumerate(self.train_loader):
                     loss_dict = {}
+                    loss_dict = info_dict('epoch', epoch, loss_dict)
                     if self.params['use_cuda']:
                         sample = sample.cuda()
 
@@ -257,7 +258,7 @@ class GANTrainerMI():
         val_gen_samples = np.vstack(val_gen_samples)
         
         # Plot validation and generated samples
-        plt.title('GAN w/o MI')
+        plt.title('GAN with MI')
         plt.scatter(val_samples[:, 0], val_samples[:, 1], marker='.', label='original', color='green')
         plt.scatter(val_gen_samples[:, 0], val_gen_samples[:, 1], marker='.', label='generated', color='blue')
         plt.legend(loc='lower left')
