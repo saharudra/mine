@@ -84,6 +84,7 @@ def spiral_dataloader(params):
 def spiral_plot(data_x, data_y):
     plt.title('training set')
     plt.scatter(data_x, data_y, marker='.', label='original', color='green')
+    plt.legend(loc='lower left')
     plt.show()
 
 if __name__ == '__main__':
