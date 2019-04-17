@@ -1,8 +1,8 @@
 # Define experiment name to be used fro saving the results and logs
-exp_name: 'gan_with_mine_spiral_1000_epochs'
+exp_name: 'gan_wo_mine_spiral_1000_epochs'
 
 # Define parameters for MINE's statistics network
-use_mine: True
+use_mine: False
 mine:
   var1_size: 3
   var2_size: 2
