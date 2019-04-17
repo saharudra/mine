@@ -117,3 +117,44 @@ class GANTrainerVanilla():
 
             if epoch % self.params['loggin_interval'] == 0:
                 self.visualize(epoch)
+
+
+class GANTrainerMI():
+    def __init__(self, model, params, train_loader, val_loader, logger, exp_results, exp_logs):
+        self.params = params
+        self.train_loader = train_loader
+        self.val_loader = val_loader
+        self.logger = logger
+        self.exp_results = exp_results
+        self.exp_logs = exp_logs
+
+        if self.params['use_cuda']:
+            self.model = model.cuda()
+        else:
+            self.model = model
+
+        # Setup the optimizers
+        self.gen_opt = torch.optim.Adam(self.model.gen.parameters(), lr=self.params['generator']['lr'])
+        self.dis_opt = torch.optim.Adam(self.model.dis.parameters(), lr=self.params['discriminator']['lr'])
+        self.mi_opt = torch.optim.Adam(self.model.mi.parameters(), lr=self.params['mi']['lr']) 
+
+    def compute_noise(self):
+        noise = torch.randn(self.params['batch_size'], self.params['generator']['z_dim'])
+        if self.params['use_cuda']:
+            noise = noise.cuda()
+        return noise
+
+    def train_dis(self):
+        pass
+    
+    def train_gen(self):
+        pass 
+
+    def train_mine(self):
+        pass
+
+    def train(self):
+        pass
+
+    def visualize(self):
+        pass
