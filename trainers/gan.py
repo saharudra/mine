@@ -172,10 +172,93 @@ class GANTrainerMI():
         return loss, gen_loss
         
     def train_mine(self):
-        pass
+        noise = self.compute_noise()
+        noise_bar = torch.narrow(self.compute_noise(), dim=1, start=0, length=3)
 
+        gen_out = self.model.gen(noise)
+
+        et = torch.mean(torch.exp(self.model.mine(noise_bar, gen_out)))
+
+        if self.model.mine.ma_et is None:
+            self.model.mine.ma_et = et.detach().item()
+        
+        self.model.mine.ma_et += self.params['mine']['ma_rate'] * (et.detach().item() - self.model.mine.ma_et)
+
+        noise_mi = torch.narrow(noise, dim=1, start=0, length=3)
+        mi = torch.mean(self.model.mine(noise_mi, gen_out)) - torch.log(et) * et.detach() / self.model.mine.ma_et
+        mi_loss = -mi
+        return mi_loss
+ 
     def train(self):
-        pass
+        iteration = 0
+        for epoch in range(self.params['epochs']):
+            with trange(len(self.train_loader)) as t:
+                self.model.train()
+                for idx, sample in enumerate(self.train_loader):
+                    loss_dict = {}
+                    if self.params['use_cuda']:
+                        sample = sample.cuda()
 
-    def visualize(self):
-        pass
+                    # Train discriminator
+                    for steps in range(self.params['gan']['d_step']):
+                        self.dis_opt.zero_grad()
+                        dis_loss = self.train_dis(sample)
+                        dis_loss.backward()
+                        self.dis_opt.step()
+                        # Update loss dict
+                        loss_dict = info_dict('dis_loss', (dis_loss.item() / self.params['gan']['d_step']), loss_dict)
+
+                    # Train generator
+                    self.gen_opt.zero_grad()
+                    gen_loss_mi, gen_loss = self.train_gen()
+                    gen_loss_mi.backward()
+                    self.gen_opt.step()
+                    # Update loss dict
+                    loss_dict = info_dict('gen_loss', gen_loss.item(), loss_dict)
+                    loss_dict = info_dict('gen_loss_mi', gen_loss_mi.item(), loss_dict)
+
+                    # Train mine
+                    self.mi_opt.zero_grad()
+                    mi_loss = self.train_mine()
+                    mi_loss.backward()
+                    self.mi_opt.step()
+                    # Update loss dict
+                    loss_dict = info_dict('mi_loss', mi_loss.item(), loss_dict)
+
+                    # Save progress
+                    for tag, value in loss_dict.items():
+                        self.logger.scalar_summary(tag, value, iteration)
+                    iteration += 1
+
+                    # Update progressbar
+                    t.set_postfix(loss_dict)
+                    t.update()
+
+            if epoch % self.params['loggin_interval'] == 0:
+                self.visualize(epoch)
+
+    def visualize(self, epoch):
+        """
+        We will be generating 1000 samples from the generator, equivalent to the number
+        of samples in the val_loader and save the overlayed plot.
+        """
+        self.model.eval()  # Set model to eval mode
+
+        # Get validation sample, no need to put on cuda as this is only being visualized
+        val_samples = next(iter(self.val_loader))
+        val_samples = val_samples.numpy()
+        val_gen_samples = []
+        for i in range(int(self.params['num_val_points'] / self.params['batch_size'])):
+            val_noise = self.compute_noise()
+            val_gen_out = self.model.gen(val_noise).detach().cpu().numpy()
+            val_gen_samples.append(val_gen_out)
+        val_gen_samples = np.vstack(val_gen_samples)
+        
+        # Plot validation and generated samples
+        plt.title('GAN w/o MI')
+        plt.scatter(val_samples[:, 0], val_samples[:, 1], marker='.', label='original', color='green')
+        plt.scatter(val_gen_samples[:, 0], val_gen_samples[:, 1], marker='.', label='generated', color='blue')
+        plt.legend(loc='lower left')
+        img_filename = self.exp_results + 'epoch_' + str(epoch) + '_spiral.jpg'
+        plt.savefig(img_filename)
+        plt.close()

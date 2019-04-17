@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn 
 
-from models.gan import GAN
-from trainers.gan import GANTrainerVanilla
+from models.gan import GAN, GAN_MI
+from trainers.gan import GANTrainerVanilla, GANTrainerMI
 from dataloaders.spiral import spiral_dataloader
 from misc.utils import *
 from misc.logger import Logger
@@ -24,7 +24,11 @@ print(params)
 
 train_loader, val_loader = spiral_dataloader(params)
 
-model = GAN(params)
+if params['use_mine']:
+    model = GAN_MI(params)
+else:
+    model = GAN(params)
+
 if params['use_cuda']:
     model = model.cuda()
 
@@ -35,6 +39,9 @@ exp_results = params['results'] + params['exp_name'] + '_' + timestamp + '/'
 mkdir_p(exp_logs)
 mkdir_p(exp_results)
 
-gan_trainer = GANTrainerVanilla(model, params, train_loader, val_loader, logger, exp_results, exp_logs)
+if params['use_mine']:
+    gan_trainer = GANTrainerMI(model, params, train_loader, val_loader, logger, exp_results, exp_logs)
+else:
+    gan_trainer = GANTrainerVanilla(model, params, train_loader, val_loader, logger, exp_results, exp_logs)
 
 gan_trainer.train()
