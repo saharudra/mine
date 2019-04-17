@@ -4,8 +4,8 @@ exp_name: 'gan_with_mine_spiral_1000_epochs'
 # Define parameters for MINE's statistics network
 use_mine: True
 mine:
-  var1_size: 1
-  var2_size: 1
+  var1_size: 3
+  var2_size: 2
   hidden: 100
   oc: 1
   lr: 0.0001

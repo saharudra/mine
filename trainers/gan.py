@@ -136,7 +136,7 @@ class GANTrainerMI():
         # Setup the optimizers
         self.gen_opt = torch.optim.Adam(self.model.gen.parameters(), lr=self.params['generator']['lr'])
         self.dis_opt = torch.optim.Adam(self.model.dis.parameters(), lr=self.params['discriminator']['lr'])
-        self.mi_opt = torch.optim.Adam(self.model.mi.parameters(), lr=self.params['mi']['lr']) 
+        self.mi_opt = torch.optim.Adam(self.model.mine.parameters(), lr=self.params['mine']['lr']) 
 
     def compute_noise(self):
         noise = torch.randn(self.params['batch_size'], self.params['generator']['z_dim'])

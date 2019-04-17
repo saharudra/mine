@@ -19,4 +19,4 @@ class GAN_MI(nn.Module):
 
         self.gen = GeneratorSpiralMine(self.params)
         self.dis = DiscriminatorSpiralMine(self.params)
-        self.mi = Mine(self.params)
+        self.mine = Mine(self.params)
