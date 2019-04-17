@@ -4,8 +4,10 @@ import torch.nn.functional as F
 
 from misc.utils import *
 from tqdm import trange
-import matplotlib.pyplot as plt 
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt 
 
 
 class GANTrainerVanilla():
